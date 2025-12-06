@@ -1,0 +1,23 @@
+services:
+  code-execution:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: codesnap-execution-service
+    
+    env_file:
+      - .env
+    
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    
+    ports:
+      - "${PORT}:${PORT}"
+      
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+networks:
+  default:
+    external: true
+    name: shared-codesnap-network
