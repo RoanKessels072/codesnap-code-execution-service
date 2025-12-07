@@ -1,12 +1,13 @@
-from src.schemas import ExecuteCodeRequest, ExecutionResult
-from src.executor import execute_code
+import json
+from src.schemas import ExecuteRequest, ExecuteResponse
+from src.executor import execute_code_job
 
-async def handle_execute_code(data: dict):
+async def handle_execution_request(msg_data: dict) -> dict:
     try:
-        req = ExecuteCodeRequest(**data)
+        request_model = ExecuteRequest(**msg_data)
     except Exception as e:
-        return {"error": f"Invalid request format: {str(e)}"}
+        return {"output": "", "error": f"Validation Error: {str(e)}", "exit_code": 400}
 
-    result_dict = execute_code(req.code, req.language)
+    result = execute_code_job(request_model.model_dump())
     
-    return ExecutionResult(**result_dict).model_dump(mode='json')
+    return result

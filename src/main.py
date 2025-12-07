@@ -3,16 +3,15 @@ from contextlib import asynccontextmanager
 import asyncio
 import docker
 import json
+import nats
 
 from src.config import settings
-from src.executor import execute_code_job
-import nats
+from src.handlers import handle_execution_request
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     try:
-        d_client = docker.from_env()
-        d_client.ping()
+        docker.from_env().ping()
         print("Docker daemon connected successfully.")
     except Exception as e:
         print(f"CRITICAL: Cannot connect to Docker: {e}")
@@ -23,11 +22,14 @@ async def lifespan(app: FastAPI):
     async def message_handler(msg):
         try:
             data = json.loads(msg.data.decode())
-            result = await asyncio.to_thread(execute_code_job, data)
+            
+            result = await asyncio.to_thread(handle_execution_request, data)
             
             if msg.reply:
                 await nc.publish(msg.reply, json.dumps(result).encode())
+                
         except Exception as e:
+            print(f"CRITICAL ERROR processing message: {e}")
             if msg.reply:
                 await nc.publish(msg.reply, json.dumps({"error": str(e)}).encode())
 

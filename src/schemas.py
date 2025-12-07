@@ -2,10 +2,11 @@ from pydantic import BaseModel
 from typing import Optional
 
 class ExecuteRequest(BaseModel):
-    language: str
     code: str
-    command: Optional[str] = None
+    language: str
+    mode: Optional[str] = "run"
 
 class ExecuteResponse(BaseModel):
     output: str
+    error: Optional[str] = None
     exit_code: int
