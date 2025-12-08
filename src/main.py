@@ -23,7 +23,7 @@ async def lifespan(app: FastAPI):
         try:
             data = json.loads(msg.data.decode())
             
-            result = await asyncio.to_thread(handle_execution_request, data)
+            result = await handle_execution_request(data)
             
             if msg.reply:
                 await nc.publish(msg.reply, json.dumps(result).encode())
