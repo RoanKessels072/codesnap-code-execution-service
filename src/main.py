@@ -40,13 +40,11 @@ async def lifespan(app: FastAPI):
             
             result = await handle_grading_job(data)
             
-            # Publish result to attempt.graded (Fire and Forget result)
             await nc.publish("attempt.graded", json.dumps(result).encode())
             print(f"Published results for attempt {data.get('attempt_id')}")
             
         except Exception as e:
              print(f"Error processing grading job: {e}")
-             # Ideally we publish an error event back so Attempt Service can mark attempt as ERROR
 
     await nc.subscribe("execution.run", cb=message_handler)
     await nc.subscribe("execution.job", cb=grading_job_handler)

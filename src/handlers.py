@@ -3,7 +3,6 @@ from src.schemas import ExecuteRequest
 from src.executor import execute_code_job
 
 async def handle_execution_request(msg_data: dict) -> dict:
-    # Used for direct "Run" requests (like the playground)
     try:
         request_model = ExecuteRequest(**msg_data)
     except Exception as e:
@@ -22,15 +21,13 @@ async def handle_grading_job(msg_data: dict) -> dict:
     attempt_id = msg_data.get("attempt_id")
     language = msg_data.get("language")
     
-    # 1. Execute Tests
     run_payload = {
         "language": language,
-        "code": msg_data.get("code"), # Harness code
+        "code": msg_data.get("code"),
         "mode": "run"
     }
     run_result = execute_code_job(run_payload)
     
-    # 2. Lint Original Code
     lint_payload = {
         "language": language,
         "code": msg_data.get("original_code"),
@@ -38,7 +35,6 @@ async def handle_grading_job(msg_data: dict) -> dict:
     }
     lint_result = execute_code_job(lint_payload)
     
-    # 3. Construct Result
     return {
         "attempt_id": attempt_id,
         "execution_output": run_result.get("output", "") + "\n" + str(run_result.get("error") or ""),
