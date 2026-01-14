@@ -6,7 +6,7 @@ import json
 import nats
 
 from src.config import settings
-from src.handlers import handle_execution_request
+from src.handlers import handle_execution_request, handle_grading_job
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -33,14 +33,35 @@ async def lifespan(app: FastAPI):
             if msg.reply:
                 await nc.publish(msg.reply, json.dumps({"error": str(e)}).encode())
 
+    async def grading_job_handler(msg):
+        try:
+            data = json.loads(msg.data.decode())
+            print(f"Received Grading job for attempt {data.get('attempt_id')}")
+            
+            result = await handle_grading_job(data)
+            
+            # Publish result to attempt.graded (Fire and Forget result)
+            await nc.publish("attempt.graded", json.dumps(result).encode())
+            print(f"Published results for attempt {data.get('attempt_id')}")
+            
+        except Exception as e:
+             print(f"Error processing grading job: {e}")
+             # Ideally we publish an error event back so Attempt Service can mark attempt as ERROR
+
     await nc.subscribe("execution.run", cb=message_handler)
-    print("Subscribed to 'execution.run'")
+    await nc.subscribe("execution.job", cb=grading_job_handler)
+    print("Subscribed to 'execution.run' and 'execution.job'")
     
     yield
     
     await nc.close()
 
+    await nc.close()
+
 app = FastAPI(lifespan=lifespan)
+
+from prometheus_fastapi_instrumentator import Instrumentator
+Instrumentator().instrument(app).expose(app)
 
 @app.get("/health")
 def health():
