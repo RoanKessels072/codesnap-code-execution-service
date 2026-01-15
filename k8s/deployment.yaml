@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: code-execution-service
+  labels:
+    app: code-execution-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: code-execution-service
+  template:
+    metadata:
+      labels:
+        app: code-execution-service
+    spec:
+      containers:
+        - name: code-execution-service
+          image: roankessels072/codesnap-code-execution-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8004
+          env:
+            - name: NATS_URL
+              value: "nats://nats:4222"
+          # SECURITY WARNING: Mounting the docker socket gives root access to the host
+          # Required for DooD (Docker outside Docker) to run user code containers
+          volumeMounts:
+            - mountPath: /var/run/docker.sock
+              name: docker-sock
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+      volumes:
+        - name: docker-sock
+          hostPath:
+            path: /var/run/docker.sock
