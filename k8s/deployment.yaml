@@ -23,6 +23,7 @@ spec:
           env:
             - name: NATS_URL
               value: "nats://nats:4222"
+
           # SECURITY WARNING: Mounting the docker socket gives root access to the host
           # Required for DooD (Docker outside Docker) to run user code containers
           volumeMounts:

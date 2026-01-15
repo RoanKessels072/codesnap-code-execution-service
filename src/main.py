@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+
 from contextlib import asynccontextmanager
 import asyncio
 import docker
@@ -59,6 +60,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 from prometheus_fastapi_instrumentator import Instrumentator
+# Prometheus metrics
 Instrumentator().instrument(app).expose(app)
 
 @app.get("/health")
