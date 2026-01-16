@@ -14,13 +14,17 @@ spec:
       labels:
         app: code-execution-service
     spec:
+      imagePullSecrets:
+        - name: ecr-secret
       containers:
         - name: code-execution-service
-          image: roankessels072/codesnap-code-execution-service:latest
-          imagePullPolicy: Never
+          image: 239861161036.dkr.ecr.eu-central-1.amazonaws.com/codesnap/code-execution-service:v1
+          imagePullPolicy: Always
           ports:
             - containerPort: 8004
           env:
+            - name: DOCKER_HOST
+              value: "tcp://localhost:2375"
             - name: NATS_URL
               value: "nats://nats:4222"
             - name: LOGFIRE_TOKEN
@@ -30,20 +34,26 @@ spec:
                   key: write-token
             - name: LOGFIRE_SERVICE_NAME
               value: "code-execution-service"
-
-          # SECURITY WARNING: Mounting the docker socket gives root access to the host
-          # Required for DooD (Docker outside Docker) to run user code containers
-          volumeMounts:
-            - mountPath: /var/run/docker.sock
-              name: docker-sock
           resources:
             requests:
-              cpu: "100m"
-              memory: "128Mi"
+              cpu: "200m"
+              memory: "256Mi"
             limits:
-              cpu: "500m"
-              memory: "512Mi"
+              cpu: "1000m"
+              memory: "256Mi"
+
+        # Docker-in-Docker Sidecar
+        - name: dind
+          image: docker:24-dind
+          securityContext:
+            privileged: true
+          env:
+            - name: DOCKER_TLS_CERTDIR
+              value: ""
+          volumeMounts:
+            - name: docker-graph-storage
+              mountPath: /var/lib/docker
+
       volumes:
-        - name: docker-sock
-          hostPath:
-            path: /var/run/docker.sock
+        - name: docker-graph-storage
+          emptyDir: {}
