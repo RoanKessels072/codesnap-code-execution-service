@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+import logfire
 
 from contextlib import asynccontextmanager
 import asyncio
@@ -8,6 +9,8 @@ import nats
 
 from src.config import settings
 from src.handlers import handle_execution_request, handle_grading_job
+
+logfire.configure()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -58,6 +61,7 @@ async def lifespan(app: FastAPI):
     await nc.close()
 
 app = FastAPI(lifespan=lifespan)
+logfire.instrument_fastapi(app)
 
 from prometheus_fastapi_instrumentator import Instrumentator
 # Prometheus metrics

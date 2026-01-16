@@ -5,6 +5,8 @@ class Settings(BaseSettings):
 
     nats_url: str = "nats://nats:4222"
     service_name: str = "code-execution-service"
+    logfire_token: str | None = None
+    logfire_service_name: str | None = None
     
     python_image: str = "codesnap-python-runner"
     node_image: str = "codesnap-node-runner"
