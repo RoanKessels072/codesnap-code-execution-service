@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: code-execution-service
-          image: roankessels/codesnap-code-execution-service:latest
+          image: roankessels/codesnap-code-execution-service:767c777f3b6c313ba2109f3837eff28d12d7f3d2
           imagePullPolicy: Always
           ports:
             - containerPort: 8004
