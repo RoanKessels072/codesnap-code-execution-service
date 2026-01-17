@@ -8,8 +8,8 @@ class Settings(BaseSettings):
     logfire_token: str | None = None
     logfire_service_name: str | None = None
     
-python_image: str = "239861161036.dkr.ecr.eu-central-1.amazonaws.com/codesnap/python-runner:v1"
-    node_image: str = "239861161036.dkr.ecr.eu-central-1.amazonaws.com/codesnap/node-runner:v1"
+    python_image: str = "python:3.10-slim"
+    node_image: str = "node:18-alpine"
     
     execution_timeout: int = 5
     max_memory: str = "128m"
