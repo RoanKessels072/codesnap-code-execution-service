@@ -2,8 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: code-execution-service
-  labels:
-    app: code-execution-service
 spec:
   replicas: 1
   selector:
@@ -27,6 +25,12 @@ spec:
               value: "tcp://localhost:2375"
             - name: NATS_URL
               value: "nats://nats:4222"
+            - name: DOCKER_CONFIG
+              value: "/root/.docker"
+            - name: PYTHON_IMAGE
+              value: "python:3.10-slim"
+            - name: NODE_IMAGE
+              value: "node:18-alpine"
             - name: LOGFIRE_TOKEN
               valueFrom:
                 secretKeyRef:
@@ -41,8 +45,9 @@ spec:
             limits:
               cpu: "1000m"
               memory: "256Mi"
-
-        # Docker-in-Docker Sidecar
+          volumeMounts:
+            - name: docker-config
+              mountPath: /root/.docker/
         - name: dind
           image: docker:24-dind
           securityContext:
@@ -53,7 +58,15 @@ spec:
           volumeMounts:
             - name: docker-graph-storage
               mountPath: /var/lib/docker
+            - name: docker-config
+              mountPath: /root/.docker/
 
       volumes:
         - name: docker-graph-storage
           emptyDir: {}
+        - name: docker-config
+          secret:
+            secretName: ecr-secret
+            items:
+              - key: .dockerconfigjson
+                path: config.json
